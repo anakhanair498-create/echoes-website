@@ -18,6 +18,7 @@ const state = {
 let scene, camera, renderer, clockSys;
 let player = { x: 0, y: 1.6, z: 10, yaw: 0, pitch: 0, onGround: true };
 let keys = {}, isLooking = false, lastMouse = { x: 0, y: 0 };
+let activePointerId = null, pointerStart = { x: 0, y: 0 }, pointerMoved = false;
 let interactables = [], grabbables = [], currentHover = null, heldObject = null;
 let worldGroup = null, flashlight = null, hillMesh = null;
 let sunLight = null, ambientLight = null, fireLight = null;
@@ -59,37 +60,63 @@ function onResize() {
 function setupControls() {
   const canvas = document.getElementById("gameCanvas");
   window.addEventListener("keydown", e => {
-    if (document.activeElement === document.getElementById("commandInput")) return;
+    if (document.activeElement === document.getElementById("commandInput") ||
+        !document.getElementById("game").classList.contains("active") ||
+        document.getElementById("introOverlay").classList.contains("active") ||
+        document.getElementById("scoreOverlay").classList.contains("active") ||
+        document.getElementById("instrPopup").classList.contains("show")) return;
     keys[e.code] = true;
     if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","KeyW","KeyA","KeyS","KeyD","KeyF","Space","KeyE"].includes(e.code)) e.preventDefault();
+    if (e.repeat) return;
     if (e.code === "KeyF") toggleFlashlight();
     if (e.code === "Space") tryClimb();
     if (e.code === "KeyE") toggleGrab();
   });
   window.addEventListener("keyup", e => { keys[e.code] = false; });
-  canvas.addEventListener("mousedown", e => {
-    if (e.button === 2 || e.button === 0) {
-      isLooking = true;
-      lastMouse = { x: e.clientX, y: e.clientY };
-      if (e.button === 0) tryInteract();
-    }
+  window.addEventListener("blur", () => {
+    keys = {};
+    isLooking = false;
+    activePointerId = null;
   });
-  window.addEventListener("mouseup", () => { isLooking = false; });
-  window.addEventListener("mousemove", e => {
-    if (!isLooking) return;
+  canvas.addEventListener("pointerdown", e => {
+    if (activePointerId !== null || (e.pointerType === "mouse" && e.button !== 0 && e.button !== 2)) return;
+    activePointerId = e.pointerId;
+    isLooking = true;
+    lastMouse = { x: e.clientX, y: e.clientY };
+    pointerStart = { x: e.clientX, y: e.clientY };
+    pointerMoved = false;
+    canvas.setPointerCapture(e.pointerId);
+    if (e.pointerType !== "touch" && e.button === 0) tryInteract();
+    if (e.pointerType === "touch") e.preventDefault();
+  });
+  window.addEventListener("pointermove", e => {
+    if (!isLooking || e.pointerId !== activePointerId) return;
+    if (Math.hypot(e.clientX - pointerStart.x, e.clientY - pointerStart.y) > 8) pointerMoved = true;
     player.yaw -= (e.clientX - lastMouse.x) * 0.0032;
     player.pitch -= (e.clientY - lastMouse.y) * 0.0028;
     player.pitch = Math.max(-1.3, Math.min(1.3, player.pitch));
     lastMouse = { x: e.clientX, y: e.clientY };
   });
+  const endLook = e => {
+    if (e.pointerId !== activePointerId) return;
+    if (e.pointerType === "touch" && !pointerMoved) tryInteract();
+    isLooking = false;
+    activePointerId = null;
+  };
+  window.addEventListener("pointerup", endLook);
+  window.addEventListener("pointercancel", endLook);
   canvas.addEventListener("contextmenu", e => e.preventDefault());
   document.querySelectorAll(".mbtn").forEach(btn => {
     const d = btn.dataset.dir;
     const on = () => keys["btn_"+d] = true, off = () => keys["btn_"+d] = false;
-    btn.addEventListener("mousedown", on); btn.addEventListener("mouseup", off);
-    btn.addEventListener("mouseleave", off);
-    btn.addEventListener("touchstart", e => { e.preventDefault(); on(); });
-    btn.addEventListener("touchend", off);
+    btn.addEventListener("pointerdown", e => {
+      e.preventDefault();
+      btn.setPointerCapture(e.pointerId);
+      on();
+    });
+    btn.addEventListener("pointerup", off);
+    btn.addEventListener("pointercancel", off);
+    btn.addEventListener("lostpointercapture", off);
   });
   setTimeout(() => { const h = document.getElementById("lookHint"); if (h) h.classList.add("fade"); }, 12000);
 }
@@ -725,7 +752,7 @@ function checkHover() {
     if (o && o.userData.id) {
       currentHover = o;
       const g = o.userData.grabbable ? " · E grab" : "";
-      prompt.textContent = "Click — " + (o.userData.label||o.userData.id) + g;
+      prompt.textContent = "Click/tap — " + (o.userData.label||o.userData.id) + g;
       prompt.classList.add("show"); cross.classList.add("active"); return;
     }
   }
@@ -792,7 +819,7 @@ function closeIntro() {
   document.getElementById("introOverlay").classList.remove("active");
   document.getElementById("commandInput").focus();
   onResize();
-  if (state.level === 1) showInstr("BRIEFING — LEVEL 1", "<b>Goal:</b> Find at least <b>4 clues</b> before leaving.<br><br>• <b>WASD</b> move · Mouse look<br>• <b>F</b> flashlight · <b>SPACE</b> climb hill<br>• <b>E</b> grab / drop small objects<br>• Click campsite, trees, road, footprints<br>• Use phone & compass from inventory<br><br>Watch the smoke. Follow the prints.");
+  if (state.level === 1) showInstr("BRIEFING — LEVEL 1", "<b>Goal:</b> Find at least <b>4 clues</b> before leaving.<br><br>• <b>WASD</b> move · Drag to look<br>• <b>F</b> flashlight · <b>SPACE</b> climb hill<br>• <b>E</b> grab / drop small objects<br>• Click or tap campsite, trees, road, footprints<br>• Use phone & compass from inventory<br><br>Watch the smoke. Follow the prints.");
   else if (state.level === 2) showInstr("BRIEFING — LEVEL 2", "<b>Goal:</b> Uncover Project Echo — <b>4 clues</b>.<br><br>• Question every exhibit (click them)<br>• Search the curator desk<br>• Your Strange Key may open the service door<br>• Grab the note on the desk with <b>E</b>");
   else showInstr("BRIEFING — LEVEL 3", "<b>Goal:</b> Prove innocence — <b>5 evidence</b> pieces.<br><br>• Enter the <b>Study</b> through the door<br>• Examine clock, letter, weapon<br>• Question Vale & Anna in the hall<br>• Check the security terminal<br>• Type <b>prove my innocence</b> when ready");
 }
@@ -813,6 +840,12 @@ function updateUI() {
     return `<div class="inv-item${hl}" title="${i.desc}" onclick="useItemById('${i.id}')">${i.name}</div>`;
   }).join("");
   document.getElementById("objectivesList").innerHTML = state.objectives.map(o=>`<li class="${o.done?"done":""}">${o.text}</li>`).join("");
+  const commandHint = document.getElementById("commandHint");
+  if (commandHint) {
+    commandHint.textContent = state.level===1 ? "Try: examine road · check phone · head east"
+      : state.level===2 ? "Try: question the knight · search desk · open chamber"
+      : "Try: enter study · check CCTV · prove my innocence";
+  }
 }
 function setScene(t){document.getElementById("sceneText").textContent=t;}
 function addMsg(type,text,name){
@@ -870,6 +903,7 @@ function sendCommand() {
   const text=input.value.trim(); if(!text||state.levelComplete)return;
   input.value=""; addMsg("player",text); state.turn++; advanceTime(1);
   const c=text.toLowerCase();
+  if (/^(help|commands|what can i do|what should i do)\??$/.test(c)) { showCommandHelp(); return; }
   if(/flashlight|torch|^f$|light on/.test(c)){toggleFlashlight();return;}
   if(/climb/.test(c)){tryClimb();return;}
   if(/grab|pick up|drop|put down/.test(c)){toggleGrab();return;}
@@ -879,14 +913,14 @@ function sendCommand() {
   if(/phone|message/.test(c)){useItemById("phone");return;}
   if(/compass/.test(c)){useItemById("compass");return;}
   if(state.level===1){
-    if(/leave|east|road|ready|head east/.test(c)){tryLeaveL1();return;}
+    if(/\b(?:leave|exit|head east|go east|walk east|follow (?:the )?road|take (?:the )?road|ready)\b/.test(c)){tryLeaveL1();return;}
     if(/camp|smoke|fire|tent/.test(c)){examineCamp();return;}
     if(/hill|ridge|climb/.test(c)){tryClimb();return;}
     if(/road|track|tire/.test(c)){examineRoad();return;}
     if(/tree|fabric|print|foot/.test(c)){examineTrees();return;}
     if(/stream|refill/.test(c)){examineStream();return;}
-    if(/where|help|what should/.test(c)){addMsg("ai","Smoke north, hill west, road east, water south. Find 4 clues. Use tools. Grab small objects with E.");return;}
-    addMsg("ai","Examine camp, hill, road, trees, footprints. Clues: "+state.clues.length+"/"+state.requiredClues);
+    if(/where|direction/.test(c)){addMsg("ai","Smoke north, hill west, road east, water south. Find 4 clues. Type 'help' for commands.");return;}
+    addMsg("ai","I didn't recognize that action. Type 'help' to see commands for this level.");
   } else if(state.level===2){
     if(/leave|ready|understand|continue/.test(c)&&state.clues.length>=state.requiredClues){state.levelComplete=true;addMsg("system","— LEVEL 2 COMPLETE —");setTimeout(()=>showScore(2),1200);return;}
     if(/artifact|egyptian|statue/.test(c)){talkArtifact();return;}
@@ -895,7 +929,7 @@ function sendCommand() {
     if(/painting/.test(c)){examinePainting();return;}
     if(/desk|curator|note/.test(c)){examineDesk();return;}
     if(/door|chamber|key|open/.test(c)){examineDoor();return;}
-    addMsg("ai","Question exhibits. Search desk. Open the door with the key. Clues: "+state.clues.length+"/"+state.requiredClues);
+    addMsg("ai","I didn't recognize that action. Type 'help' to see commands for this level.");
   } else {
     if(/prove|innocent|accuse/.test(c)){proveInnocence();return;}
     if(/study|enter study|crime/.test(c)){enterStudy();return;}
@@ -905,9 +939,17 @@ function sendCommand() {
     if(/vale|doctor/.test(c)){talkVale();return;}
     if(/anna|maid/.test(c)){talkAnna();return;}
     if(/camera|cctv|terminal|footage/.test(c)){checkCCTV();return;}
-    addMsg("ai","Enter the study. Examine clock and desk. Question everyone. Check CCTV. Evidence: "+state.clues.length+"/"+state.requiredClues);
+    addMsg("ai","I didn't recognize that action. Type 'help' to see commands for this level.");
   }
   updateUI();
+}
+function showCommandHelp() {
+  const instructions = state.level===1
+    ? "Level 1: examine camp, road, trees, or stream; use phone or compass; climb the hill; grab or drop objects; type 'head east' or 'leave' after finding 4 clues."
+    : state.level===2
+    ? "Level 2: question the artifact, knight, or dinosaur; examine the painting or curator desk; open the chamber with your key; leave after finding 4 clues."
+    : "Level 3: enter the study; examine the clock, letter, or weapon; question Vale or Anna; check CCTV; type 'prove my innocence' after finding 5 pieces of evidence.";
+  addMsg("ai",instructions);
 }
 document.getElementById("commandInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendCommand();});
 

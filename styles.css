@@ -248,6 +248,7 @@ body {
   min-height: 0;
   background: #000;
   overflow: hidden;
+  touch-action: none;
 }
 #gameCanvas {
   display: block;
@@ -501,6 +502,29 @@ body {
   padding: 0.9rem 1.1rem;
   border-top: 1px solid var(--border);
   background: var(--panel-2);
+}
+.command-guidance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0 1.1rem 0.65rem;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.command-guidance button {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--accent);
+  padding: 0.25rem 0.5rem;
+  font: inherit;
+  cursor: pointer;
+}
+.command-guidance button:hover,
+.command-guidance button:focus-visible {
+  border-color: var(--accent);
 }
 #commandInput {
   flex: 1;
