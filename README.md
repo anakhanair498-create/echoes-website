@@ -81,14 +81,14 @@ The forest tree, foliage, and ground textures, along with the interior PBR maps,
 
 ## Deploy with Netlify
 
-Connect the GitHub repository to Netlify and set:
+Connect the GitHub repository to Netlify. The included [`netlify.toml`](./netlify.toml) configures the build command and publish directory automatically:
 
 | Netlify setting | Value |
 | --- | --- |
 | Build command | `npm run build` |
 | Publish directory | `dist` |
 
-No environment variables are required. For a manual deploy, run `npm run build` and publish the generated `dist` directory.
+No environment variables are required. Each deploy builds the Vite app and publishes `dist`, which contains the bundled game and its local assets. For a manual deploy, run `npm run build` and publish the generated `dist` directory.
 
 ## Project structure
 
