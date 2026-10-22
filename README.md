@@ -7,11 +7,13 @@ ECHOES is a browser-based, first-person interactive mystery game. Explore three 
 - **HTML5** for the game screens and interface
 - **CSS3** for styling and responsive layouts
 - **JavaScript** for gameplay, controls, and story logic
-- **Three.js (r128)** for the 3D scenes and rendering, loaded from a CDN
+- **Three.js (r128)** for 3D rendering and glTF asset loading
 - **Vite** for local development and production builds
 - **Netlify** for static-site hosting and deployment
 
-The game is a static website with no server-side application. Despite the AI-themed descriptions in the interface, the current dialogue and command handling are implemented with local JavaScript rules; no AI service or API key is required.
+The game is a static website with no server-side application. Three.js and the forest/interior assets are bundled in the project; Google Fonts are loaded from an external CDN. Despite the AI-themed descriptions in the interface, the current dialogue and command handling are implemented with local JavaScript rules; no AI service or API key is required.
+
+Each level has its own procedural ambient soundtrack generated in the browser with the Web Audio API; no music files or external audio services are used. The on-screen music control can mute or resume it.
 
 ## Run locally
 
@@ -31,7 +33,7 @@ npm run build
 npm run preview
 ```
 
-The game needs a modern browser with WebGL support. Three.js and Google Fonts are loaded from external CDNs, so an internet connection is needed for those resources.
+The game needs a modern browser with WebGL support. An internet connection is only needed to load Google Fonts; Three.js and the game assets are bundled locally.
 
 ## How to play
 
@@ -39,7 +41,10 @@ The game needs a modern browser with WebGL support. Three.js and Google Fonts ar
 - Use **WASD** or the on-screen directional buttons to move.
 - Drag with the mouse to look around; on touch devices, drag in the scene.
 - Click or tap visible objects to investigate them.
-- Press **F** to toggle the flashlight, **E** to grab or drop an object, and **Space** to climb where possible.
+- Press **F** to toggle the brighter flashlight, **E** to grab or drop an object (or use a held food/water/medical item), and **Space** to climb the forest hill.
+- Click food, water, or medical supplies in the inventory to see them in your hand; press **E** or the **USE** button to consume them.
+- Follow the live map in the forest. In the museum and manor, find and click the wall switch to turn on the room lights. Walk up the manor staircase to inspect its upper landing.
+- Use the **MUSIC ON/OFF** button to control the level-specific ambient soundtrack.
 - Use the command box to ask questions or enter actions. Type **help** to see suggestions for the current level.
 - Inspect and use inventory items when needed, and collect enough clues to complete each case.
 
@@ -61,4 +66,9 @@ No environment variables are required. For a manual deploy, run `npm run build` 
 - `index.html` — game screens and interface
 - `styles.css` — visual styling and responsive layout
 - `public/game.js` — 3D scenes, gameplay, controls, and story logic (served as a classic script to preserve the existing inline handlers)
-- `package.json` — Vite scripts and development dependency
+- `src/main.js` — loads Three.js and its glTF decoder, then starts the classic game script
+- `public/assets/forest/` — locally bundled trees, foliage maps, ground texture, and asset credits
+- `public/assets/interiors/` — locally bundled marble/wood PBR maps and asset credits
+- `package.json` — Vite scripts and project dependencies
+
+Free CC0 asset sources and license details are documented in [`public/assets/forest/ASSET_CREDITS.md`](./public/assets/forest/ASSET_CREDITS.md) and [`public/assets/interiors/ASSET_CREDITS.md`](./public/assets/interiors/ASSET_CREDITS.md).
