@@ -44,7 +44,7 @@ The game needs a modern browser with WebGL support. An internet connection is on
 - Press **F** to toggle the brighter flashlight, **E** to grab or drop an object (or use a held food/water/medical item), and **Space** to climb the forest hill.
 - Click food, water, or medical supplies in the inventory to see them in your hand; press **E** or the **USE** button to consume them.
 - Follow the live map in the forest. In the museum and manor, find and click the wall switch to turn on the room lights. Walk up the manor staircase to inspect its upper landing.
-- Use the **MUSIC ON/OFF** button to control the level-specific ambient soundtrack.
+- Choose **STOP MUSIC** to silence the soundtrack completely, or **PLAY MUSIC** to resume it.
 - Use the command box to ask questions or enter actions. Type **help** to see suggestions for the current level.
 - Inspect and use inventory items when needed, and collect enough clues to complete each case.
 

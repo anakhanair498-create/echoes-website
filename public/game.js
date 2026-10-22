@@ -31,7 +31,7 @@ let fireFlames = [], fireEmbers = [], waterRipples = [];
 let mapContext = null, lastMapUpdate = 0;
 const interactionRaycaster = new THREE.Raycaster();
 const cameraTarget = new THREE.Vector3();
-const music = { context: null, master: null, drone: null, timer: null, enabled: true, step: 0, level: 0 };
+const music = { context: null, master: null, timer: null, enabled: true, step: 0, level: 0, generation: 0, sources: new Map() };
 
 function initThree() {
   const canvas = document.getElementById("gameCanvas");
@@ -166,59 +166,110 @@ function advanceTime(mins) {
   while (state.minute >= 60) { state.minute -= 60; state.hour = (state.hour + 1) % 24; }
   updateTimeDisplay(); updateDayNight();
 }
+function stopLevelMusic(suspendContext=true) {
+  music.generation++;
+  if(music.timer) {
+    clearInterval(music.timer);
+    music.timer=null;
+  }
+  for(const [source,connections] of music.sources) {
+    try {
+      source.stop();
+      source.disconnect();
+      if(connections.filter) connections.filter.disconnect();
+      connections.volume.disconnect();
+    } catch(error) {
+      console.warn("A background music voice had already stopped.",error);
+    }
+  }
+  music.sources.clear();
+  if(music.context&&music.master) {
+    const now=music.context.currentTime;
+    music.master.gain.cancelScheduledValues(now);
+    music.master.gain.setValueAtTime(0,now);
+    music.master.gain.value=0;
+    if(suspendContext&&music.context.state!=="suspended"&&music.context.state!=="closed") {
+      music.context.suspend().catch(error=>{
+        console.error("Unable to suspend background music.",error);
+      });
+    }
+  }
+  updateMusicButton();
+}
 function startLevelMusic(level) {
   music.level=level;
+  stopLevelMusic(false);
   if (!music.enabled) { updateMusicButton(); return; }
   const AudioContextClass=window.AudioContext||window.webkitAudioContext;
   if (!AudioContextClass) {
     console.warn("Background music is unavailable because this browser does not support Web Audio.");
     return;
   }
+  const generation=music.generation;
   try {
     if (!music.context) {
       music.context=new AudioContextClass();
       music.master=music.context.createGain();
-      music.master.gain.value=0.1;
+      music.master.gain.value=0;
       music.master.connect(music.context.destination);
     }
-    music.context.resume();
-    if (music.timer) clearInterval(music.timer);
-    if (music.drone) {
-      music.drone.stop();
-      music.drone=null;
-    }
     const ctx=music.context;
-    const drone=ctx.createOscillator();
-    const droneGain=ctx.createGain();
-    drone.type="sine";
-    drone.frequency.value=level===1?73.42:level===2?55:65.41;
-    droneGain.gain.value=0.045;
-    drone.connect(droneGain); droneGain.connect(music.master);
-    drone.start();
-    music.drone=drone;
-    const notes=level===1?[293.66,349.23,440,392,293.66,261.63,349.23,392]
-      :level===2?[164.81,174.61,146.83,220,164.81,155.56,196,174.61]
-      :[220,261.63,293.66,329.63,293.66,261.63,196,220];
-    const playNote=()=>{
-      if (!music.enabled||!music.context||music.context.state!=="running") return;
+    ctx.resume().then(()=>{
+      if(!music.enabled||generation!==music.generation) {
+        return;
+      }
       const now=ctx.currentTime;
-      const oscillator=ctx.createOscillator();
-      const filter=ctx.createBiquadFilter();
-      const volume=ctx.createGain();
-      oscillator.type=level===2?"triangle":"sine";
-      oscillator.frequency.value=notes[music.step%notes.length];
-      filter.type="lowpass";
-      filter.frequency.value=level===2?430:700;
-      volume.gain.setValueAtTime(0.0001,now);
-      volume.gain.linearRampToValueAtTime(level===2?0.3:0.2,now+0.18);
-      volume.gain.exponentialRampToValueAtTime(0.0001,now+(level===2?1.25:1.05));
-      oscillator.connect(filter); filter.connect(volume); volume.connect(music.master);
-      oscillator.start(now); oscillator.stop(now+(level===2?1.3:1.1));
-      music.step++;
-    };
-    music.step=0;
-    playNote();
-    music.timer=setInterval(playNote,level===2?1050:1250);
+      music.master.gain.cancelScheduledValues(now);
+      music.master.gain.setValueAtTime(0,now);
+      music.master.gain.linearRampToValueAtTime(0.1,now+0.2);
+      const createVoice=(oscillator,volume,filter=null)=>{
+        oscillator.connect(filter||volume);
+        if(filter) filter.connect(volume);
+        volume.connect(music.master);
+        music.sources.set(oscillator,{filter,volume});
+        oscillator.addEventListener("ended",()=>{
+          music.sources.delete(oscillator);
+          oscillator.disconnect();
+          if(filter) filter.disconnect();
+          volume.disconnect();
+        },{once:true});
+        oscillator.start();
+        return oscillator;
+      };
+      const drone=ctx.createOscillator();
+      const droneGain=ctx.createGain();
+      drone.type="sine";
+      drone.frequency.value=level===1?73.42:level===2?55:65.41;
+      droneGain.gain.value=0.045;
+      createVoice(drone,droneGain);
+      const notes=level===1?[293.66,349.23,440,392,293.66,261.63,349.23,392]
+        :level===2?[164.81,174.61,146.83,220,164.81,155.56,196,174.61]
+        :[220,261.63,293.66,329.63,293.66,261.63,196,220];
+      const playNote=()=>{
+        if (!music.enabled||generation!==music.generation||ctx.state!=="running") return;
+        const noteTime=ctx.currentTime;
+        const oscillator=ctx.createOscillator();
+        const filter=ctx.createBiquadFilter();
+        const volume=ctx.createGain();
+        oscillator.type=level===2?"triangle":"sine";
+        oscillator.frequency.value=notes[music.step%notes.length];
+        filter.type="lowpass";
+        filter.frequency.value=level===2?430:700;
+        volume.gain.setValueAtTime(0.0001,noteTime);
+        volume.gain.linearRampToValueAtTime(level===2?0.3:0.2,noteTime+0.18);
+        volume.gain.exponentialRampToValueAtTime(0.0001,noteTime+(level===2?1.25:1.05));
+        oscillator.connect(filter);
+        createVoice(oscillator,volume,filter);
+        music.step++;
+      };
+      music.step=0;
+      playNote();
+      music.timer=setInterval(playNote,level===2?1050:1250);
+    }).catch(error=>{
+      if(generation!==music.generation) return;
+      console.error("Unable to resume level background music.",error);
+      addMsg("warning","Background music could not start in this browser.");
+    });
   } catch(error) {
     console.error("Unable to start level background music.",error);
     addMsg("warning","Background music could not start in this browser.");
@@ -227,15 +278,15 @@ function startLevelMusic(level) {
 }
 function toggleMusic() {
   music.enabled=!music.enabled;
-  if (music.master) music.master.gain.setTargetAtTime(music.enabled?0.1:0,music.context.currentTime,0.08);
   if (music.enabled) startLevelMusic(state.level);
-  else if (music.timer) { clearInterval(music.timer); music.timer=null; }
+  else stopLevelMusic();
   updateMusicButton();
 }
 function updateMusicButton() {
   const button=document.getElementById("musicButton");
   if (!button) return;
-  button.textContent=music.enabled?"♫ MUSIC ON":"♫ MUSIC OFF";
+  button.textContent=music.enabled?"♫ STOP MUSIC":"♫ PLAY MUSIC";
+  button.setAttribute("aria-label",music.enabled?"Stop background music":"Play background music");
   button.setAttribute("aria-pressed",String(music.enabled));
 }
 function updateTimeDisplay() {

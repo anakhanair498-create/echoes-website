@@ -840,7 +840,7 @@ button:focus-visible, input:focus-visible {
   .stats-bar { padding:0.55rem 0.35rem; font-size:0.68rem; }
   .quick-controls { right:8px; bottom:8px; }
   .quick-tool { font-size:0.64rem; padding:0 9px; }
-  .music-button { font-size:0.6rem; }
+  .music-button { font-size:0.56rem; padding:0 7px; }
   .action-button { min-width:88px; font-size:0.65rem; padding:0 9px; }
   .interact-prompt { max-width:calc(100% - 24px); white-space:normal; text-align:center; bottom:66px; }
   .panel { padding:1.4rem; }
