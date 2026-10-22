@@ -1,74 +1,105 @@
 # ECHOES
 
-ECHOES is a browser-based, first-person interactive mystery game. Explore three connected cases, investigate scenes, collect clues, question characters, and use your discoveries to move the story forward.
+> **Every decision leaves a trace.**
 
-## Technologies
+ECHOES is a browser-based, first-person mystery adventure built around three connected cases. Explore a forest, investigate a museum after dark, and uncover the truth inside Blackwood Manor. Search for clues, question characters, and piece the evidence together to solve the story.
 
-- **HTML5** for the game screens and interface
-- **CSS3** for styling and responsive layouts
-- **JavaScript** for gameplay, controls, and story logic
-- **Three.js (r128)** for 3D rendering and glTF asset loading
-- **Vite** for local development and production builds
-- **Netlify** for static-site hosting and deployment
+## At a glance
 
-The game is a static website with no server-side application. Three.js and the forest/interior assets are bundled in the project; Google Fonts are loaded from an external CDN. Despite the AI-themed descriptions in the interface, the current dialogue and command handling are implemented with local JavaScript rules; no AI service or API key is required.
+| | |
+| --- | --- |
+| **Genre** | First-person mystery and exploration |
+| **Levels** | The Unknown · Museum After Dark · The Final Case |
+| **Runs on** | Modern browsers with WebGL support |
+| **Built with** | HTML, CSS, JavaScript, Three.js, and Vite |
+| **Hosting** | Netlify-ready static site |
 
-Each level has its own procedural ambient soundtrack generated in the browser with the Web Audio API; no music files or external audio services are used. The on-screen music control can mute or resume it.
+### What you can do
 
-## Run locally
+- Explore interactive 3D environments and investigate objects.
+- Follow a live map through the forest and search for evidence.
+- Question characters, use inventory tools, and connect clues across cases.
+- Turn on the museum and manor lights, climb the manor staircase, and inspect its landing.
+- Listen to a different procedural soundtrack in each level—or stop the music whenever you like.
 
-Install [Node.js](https://nodejs.org/) (which includes npm), then run these commands from the project directory:
+## Get started
+
+You’ll need [Node.js](https://nodejs.org/) (npm is included) and a modern browser with WebGL enabled.
 
 ```sh
+# Install project dependencies
 npm install
+
+# Start the local development server
 npm run dev
 ```
 
-Open the local URL printed by Vite in your browser. The development server supports hot reload while editing. Stop it with `Ctrl+C`.
+Open the local address printed in the terminal. Vite reloads the page as you edit files. Stop the server with `Ctrl+C`.
 
-To create and preview the production build locally:
+To build and preview the production site locally:
 
 ```sh
 npm run build
 npm run preview
 ```
 
-The game needs a modern browser with WebGL support. An internet connection is only needed to load Google Fonts; Three.js and the game assets are bundled locally.
-
 ## How to play
 
-- Choose **Start Journey** to begin the first case.
-- Use **WASD** or the on-screen directional buttons to move.
-- Drag with the mouse to look around; on touch devices, drag in the scene.
-- Click or tap visible objects to investigate them.
-- Press **F** to toggle the brighter flashlight, **E** to grab or drop an object (or use a held food/water/medical item), and **Space** to climb the forest hill.
-- Click food, water, or medical supplies in the inventory to see them in your hand; press **E** or the **USE** button to consume them.
-- Follow the live map in the forest. In the museum and manor, find and click the wall switch to turn on the room lights. Walk up the manor staircase to inspect its upper landing.
-- Choose **STOP MUSIC** to silence the soundtrack completely, or **PLAY MUSIC** to resume it.
-- Use the command box to ask questions or enter actions. Type **help** to see suggestions for the current level.
-- Inspect and use inventory items when needed, and collect enough clues to complete each case.
+| Action | Controls |
+| --- | --- |
+| Move | **WASD** or the on-screen direction buttons |
+| Look around | Drag in the 3D scene |
+| Inspect an object | Click or tap it |
+| Toggle flashlight | **F** or the flashlight button |
+| Pick up or drop an object | **E** |
+| Use a held food, water, or medical item | **E** or **USE** |
+| Climb the forest hill | **Space** |
+| Ask for suggestions | Type **help** in the command box |
 
-The **Play With Friends** screen is a preview; multiplayer is not implemented yet.
+In Level 1, use the field map to find landmarks and clues. In Levels 2 and 3, look for a wall switch to light the room. Walk up the staircase in the manor to inspect the upper landing. Use **STOP MUSIC** and **PLAY MUSIC** to control the soundtrack.
 
-## Deploy on Netlify
+## The three cases
 
-Connect the Git repository to Netlify and configure the site with:
+1. **The Unknown** — Find your bearings, investigate the campsite, and follow the trail through the forest.
+2. **Museum After Dark** — Question the exhibits, search the gallery, and uncover the mystery behind Project Echo.
+3. **The Final Case** — Explore Blackwood Manor, question its residents, and gather evidence to prove your innocence.
 
-| Setting | Value |
+## Technology and assets
+
+- **HTML5, CSS3, and JavaScript** power the interface, responsive layouts, and game logic.
+- **Three.js (r128)** renders the 3D worlds and loads the tree model.
+- **Vite** runs the development server and creates production builds.
+- **Web Audio API** generates the level-specific ambient soundtrack in the browser; no audio files or external audio service are required.
+- **Netlify** can host the generated static site.
+
+Three.js and game assets are bundled locally. Google Fonts are loaded from an external CDN, so an internet connection is needed for those fonts. Dialogue and command handling use local JavaScript rules; despite the AI-themed presentation, the game does not connect to an AI service or require an API key.
+
+The forest tree, foliage, and ground textures, along with the interior PBR maps, are free CC0 assets. Sources and credits:
+
+- [Forest asset credits](./public/assets/forest/ASSET_CREDITS.md)
+- [Interior asset credits](./public/assets/interiors/ASSET_CREDITS.md)
+
+## Deploy with Netlify
+
+Connect the GitHub repository to Netlify and set:
+
+| Netlify setting | Value |
 | --- | --- |
 | Build command | `npm run build` |
 | Publish directory | `dist` |
 
-No environment variables are required. For a manual deploy, run `npm run build` and upload the generated `dist` directory.
+No environment variables are required. For a manual deploy, run `npm run build` and publish the generated `dist` directory.
 
-## Project files
+## Project structure
 
-- `index.html` — game screens and interface
-- `styles.css` — visual styling and responsive layout
-- `public/game.js` — 3D scenes, gameplay, controls, and story logic (served as a classic script to preserve the existing inline handlers)
-- `src/main.js` — loads Three.js and its glTF decoder, then starts the classic game script
-- `public/assets/forest/` — locally bundled trees, foliage maps, ground texture, and asset credits
-- `public/assets/interiors/` — locally bundled marble/wood PBR maps and asset credits
-- `package.json` — Vite scripts and project dependencies
+| Path | Purpose |
+| --- | --- |
+| `index.html` | Game screens and interface |
+| `styles.css` | Visual styling and responsive layout |
+| `public/game.js` | 3D scenes, controls, interaction, and story logic |
+| `src/main.js` | Loads Three.js and its glTF decoder, then starts the game script |
+| `public/assets/forest/` | Forest models, textures, and asset credits |
+| `public/assets/interiors/` | Interior surface maps and asset credits |
+| `package.json` | Project dependencies and Vite commands |
 
-Free CC0 asset sources and license details are documented in [`public/assets/forest/ASSET_CREDITS.md`](./public/assets/forest/ASSET_CREDITS.md) and [`public/assets/interiors/ASSET_CREDITS.md`](./public/assets/interiors/ASSET_CREDITS.md).
+The **Play With Friends** screen is a preview; multiplayer is not implemented yet.
