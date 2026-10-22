@@ -8,7 +8,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
   <section id="home" class="screen active">
@@ -37,7 +36,7 @@
       <div class="howto-grid">
         <div class="howto-card">
           <h3>1. Move & Look</h3>
-          <p><b>WASD</b> walk · Drag to look · <b>F</b> flashlight · <b>SPACE</b> climb · <b>E</b> grab / drop object</p>
+          <p><b>WASD</b> walk · Drag to look · <b>F</b> flashlight · <b>SPACE</b> climb hill · <b>E</b> use / grab / drop</p>
         </div>
         <div class="howto-card">
           <h3>2. Investigate</h3>
@@ -45,11 +44,11 @@
         </div>
         <div class="howto-card">
           <h3>3. Use Every Tool</h3>
-          <p>Flashlight, phone, compass, food, water, meds — all from inventory or by typing.</p>
+          <p>Click food, water, or medical supplies to hold them, then press <b>E</b> to use. Find the wall switches; use the map and level music controls.</p>
         </div>
         <div class="howto-card">
           <h3>4. Ask Anything</h3>
-          <p>Type natural questions. The AI answers and the story changes with your discoveries.</p>
+          <p>Search for clues, question characters, climb the manor stairs, and connect the evidence to move the story forward.</p>
         </div>
       </div>
       <div class="core-mechanic">
@@ -82,10 +81,19 @@
           <div class="time" id="time">Day — 14:32</div>
         </div>
         <div class="viewport-wrap" id="viewportWrap">
-          <canvas id="gameCanvas"></canvas>
+          <canvas id="gameCanvas" tabindex="0" aria-label="ECHOES 3D game world. Use WASD to move and drag to look."></canvas>
           <div class="crosshair" id="crosshair">+</div>
           <div class="interact-prompt" id="interactPrompt">Click/tap to examine</div>
-          <div class="look-hint" id="lookHint">WASD · Drag to look · F light · E grab · SPACE climb · Click/tap objects</div>
+          <div class="look-hint" id="lookHint">WASD · Drag to look · F light · E use / pick up · SPACE climb · Click/tap to inspect</div>
+          <div class="map-hud" id="mapHud" hidden>
+            <canvas id="miniMap" width="180" height="180" role="img" aria-label="Forest map showing your position and nearby landmarks"></canvas>
+            <span>FIELD MAP · N ↑</span>
+          </div>
+          <div class="quick-controls">
+            <button type="button" class="quick-tool" onclick="toggleFlashlight()" aria-label="Toggle flashlight">🔦 LIGHT</button>
+            <button type="button" class="quick-tool music-button" id="musicButton" onclick="toggleMusic()" aria-pressed="true">♫ MUSIC ON</button>
+            <button type="button" class="action-button" id="actionButton" onclick="actionButtonAction()">INSPECT</button>
+          </div>
           <div class="move-overlay">
             <button class="mbtn" data-dir="forward">▲</button>
             <div class="mrow">
@@ -136,8 +144,10 @@
   </section>
 
   <div id="scoreOverlay" class="overlay">
+    <div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
     <div class="score-card">
       <h2 id="scoreTitle">LEVEL COMPLETE</h2>
+      <p class="score-message" id="scoreMessage"></p>
       <div class="score-total" id="scoreTotal">87/100</div>
       <div class="score-breakdown" id="scoreBreakdown"></div>
       <div class="rank" id="rank">SURVIVOR</div>
@@ -151,6 +161,6 @@
       <button class="btn primary" onclick="closeIntro()">ENTER WORLD</button>
     </div>
   </div>
-  <script src="/game.js"></script>
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>
