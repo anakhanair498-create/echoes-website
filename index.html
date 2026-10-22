@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ECHOES — An AI Interactive Mystery World</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+  <section id="home" class="screen active">
+    <div class="home-bg"></div>
+    <div class="home-content">
+      <div class="logo">ECHOES</div>
+      <p class="tagline">Every decision leaves a trace.</p>
+      <p class="sub-tagline">An AI-powered interactive mystery where the world reacts to what you say.</p>
+      <div class="home-buttons">
+        <button class="btn primary" onclick="startJourney()">START JOURNEY</button>
+        <button class="btn secondary" onclick="showMultiplayer()">PLAY WITH FRIENDS</button>
+        <button class="btn ghost" onclick="showHowTo()">HOW TO PLAY</button>
+      </div>
+      <div class="levels-preview">
+        <div class="level-card"><span class="level-icon">🌲</span><h3>LEVEL 1</h3><p>The Unknown</p><span class="stars">★★☆☆☆</span></div>
+        <div class="level-card"><span class="level-icon">🏛️</span><h3>LEVEL 2</h3><p>Museum After Dark</p><span class="stars">★★★★☆</span></div>
+        <div class="level-card"><span class="level-icon">🕵️</span><h3>LEVEL 3</h3><p>The Final Case</p><span class="stars">★★★★★</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="howto" class="screen">
+    <div class="panel">
+      <button class="back-btn" onclick="showHome()">← Back</button>
+      <h1>How to Play</h1>
+      <div class="howto-grid">
+        <div class="howto-card">
+          <h3>1. Move & Look</h3>
+          <p><b>WASD</b> walk · Mouse drag look · <b>F</b> flashlight · <b>SPACE</b> climb · <b>E</b> grab / drop object</p>
+        </div>
+        <div class="howto-card">
+          <h3>2. Investigate</h3>
+          <p>Click objects to examine. Grab and move clues. Find enough clues before you can leave a level.</p>
+        </div>
+        <div class="howto-card">
+          <h3>3. Use Every Tool</h3>
+          <p>Flashlight, phone, compass, food, water, meds — all from inventory or by typing.</p>
+        </div>
+        <div class="howto-card">
+          <h3>4. Ask Anything</h3>
+          <p>Type natural questions. The AI answers and the story changes with your discoveries.</p>
+        </div>
+      </div>
+      <div class="core-mechanic">
+        <p class="quote">"Don't choose what the game lets you do.<br>Tell the game what you want to do."</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="multiplayer" class="screen">
+    <div class="panel">
+      <button class="back-btn" onclick="showHome()">← Back</button>
+      <h1>Play With Friends</h1>
+      <p class="mp-intro">Up to 4 investigators can enter the same case. Each explores different leads, then compares evidence.</p>
+      <div class="mp-roles">
+        <div class="role-card">Player 1<br><span>Interrogates</span></div>
+        <div class="role-card">Player 2<br><span>Searches</span></div>
+        <div class="role-card">Player 3<br><span>CCTV</span></div>
+        <div class="role-card">Player 4<br><span>Office</span></div>
+      </div>
+      <p class="mp-note">When stories don't match… the truth surfaces.</p>
+      <button class="btn primary" onclick="alert('Multiplayer coming soon — single-player is fully playable.')">CREATE LOBBY</button>
+    </div>
+  </section>
+
+  <section id="game" class="screen">
+    <div class="game-layout">
+      <div class="env-panel">
+        <div class="env-header">
+          <div class="location" id="location">Unknown Wilderness</div>
+          <div class="time" id="time">Day — 14:32</div>
+        </div>
+        <div class="viewport-wrap" id="viewportWrap">
+          <canvas id="gameCanvas"></canvas>
+          <div class="crosshair" id="crosshair">+</div>
+          <div class="interact-prompt" id="interactPrompt">Click to examine</div>
+          <div class="look-hint" id="lookHint">WASD · Mouse look · F light · E grab · SPACE climb · Click objects</div>
+          <div class="move-overlay">
+            <button class="mbtn" data-dir="forward">▲</button>
+            <div class="mrow">
+              <button class="mbtn" data-dir="left">◀</button>
+              <button class="mbtn" data-dir="back">▼</button>
+              <button class="mbtn" data-dir="right">▶</button>
+            </div>
+          </div>
+          <!-- Instruction popup -->
+          <div class="instr-popup" id="instrPopup">
+            <div class="instr-title" id="instrTitle">INVESTIGATION BRIEFING</div>
+            <div class="instr-body" id="instrBody"></div>
+            <button class="btn primary" onclick="closeInstr()" style="margin-top:12px;padding:8px 16px;font-size:0.8rem;">GOT IT</button>
+          </div>
+        </div>
+        <div class="scene-text-bar"><div class="scene-text" id="sceneText">Loading…</div></div>
+        <div class="stats-bar">
+          <div class="stat"><span>❤️</span> <span id="health">85%</span></div>
+          <div class="stat"><span>🥫</span> <span id="food">3.0d</span></div>
+          <div class="stat"><span>💧</span> <span id="water">2.5d</span></div>
+          <div class="stat"><span>🛡️</span> <span id="safety">60%</span></div>
+          <div class="stat"><span>🧠</span> <span id="info">10%</span></div>
+        </div>
+      </div>
+      <div class="ai-panel">
+        <div class="ai-header">
+          <span class="level-badge" id="levelBadge">LEVEL 1 — THE UNKNOWN</span>
+          <button class="menu-btn" onclick="toggleMenu()">☰</button>
+        </div>
+        <div class="objectives"><h4>OBJECTIVES</h4><ul id="objectivesList"></ul></div>
+        <div class="inventory"><h4>INVENTORY</h4><div class="inv-grid" id="inventory"></div></div>
+        <div class="chat-log" id="chatLog"></div>
+        <div class="command-area">
+          <input type="text" id="commandInput" placeholder="Ask questions, give orders, investigate…" autocomplete="off" />
+          <button id="sendBtn" onclick="sendCommand()">→</button>
+        </div>
+      </div>
+    </div>
+    <div id="sideMenu" class="side-menu">
+      <button onclick="showScore()">View Score</button>
+      <button onclick="restartLevel()">Restart Level</button>
+      <button onclick="showHome()">Exit to Menu</button>
+    </div>
+  </section>
+
+  <div id="scoreOverlay" class="overlay">
+    <div class="score-card">
+      <h2 id="scoreTitle">LEVEL COMPLETE</h2>
+      <div class="score-total" id="scoreTotal">87/100</div>
+      <div class="score-breakdown" id="scoreBreakdown"></div>
+      <div class="rank" id="rank">SURVIVOR</div>
+      <button class="btn primary" id="nextLevelBtn">CONTINUE</button>
+    </div>
+  </div>
+  <div id="introOverlay" class="overlay">
+    <div class="intro-card">
+      <h2 id="introTitle">LEVEL 1</h2>
+      <p id="introText"></p>
+      <button class="btn primary" onclick="closeIntro()">ENTER WORLD</button>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
