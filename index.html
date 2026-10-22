@@ -37,11 +37,11 @@
       <div class="howto-grid">
         <div class="howto-card">
           <h3>1. Move & Look</h3>
-          <p><b>WASD</b> walk · Mouse drag look · <b>F</b> flashlight · <b>SPACE</b> climb · <b>E</b> grab / drop object</p>
+          <p><b>WASD</b> walk · Drag to look · <b>F</b> flashlight · <b>SPACE</b> climb · <b>E</b> grab / drop object</p>
         </div>
         <div class="howto-card">
           <h3>2. Investigate</h3>
-          <p>Click objects to examine. Grab and move clues. Find enough clues before you can leave a level.</p>
+          <p>Click or tap objects to examine. Grab and move clues. Find enough clues before you can leave a level.</p>
         </div>
         <div class="howto-card">
           <h3>3. Use Every Tool</h3>
@@ -84,8 +84,8 @@
         <div class="viewport-wrap" id="viewportWrap">
           <canvas id="gameCanvas"></canvas>
           <div class="crosshair" id="crosshair">+</div>
-          <div class="interact-prompt" id="interactPrompt">Click to examine</div>
-          <div class="look-hint" id="lookHint">WASD · Mouse look · F light · E grab · SPACE climb · Click objects</div>
+          <div class="interact-prompt" id="interactPrompt">Click/tap to examine</div>
+          <div class="look-hint" id="lookHint">WASD · Drag to look · F light · E grab · SPACE climb · Click/tap objects</div>
           <div class="move-overlay">
             <button class="mbtn" data-dir="forward">▲</button>
             <div class="mrow">
@@ -119,8 +119,12 @@
         <div class="inventory"><h4>INVENTORY</h4><div class="inv-grid" id="inventory"></div></div>
         <div class="chat-log" id="chatLog"></div>
         <div class="command-area">
-          <input type="text" id="commandInput" placeholder="Ask questions, give orders, investigate…" autocomplete="off" />
-          <button id="sendBtn" onclick="sendCommand()">→</button>
+          <input type="text" id="commandInput" placeholder="Ask questions, give orders, investigate…" autocomplete="off" aria-label="Enter a command" />
+          <button id="sendBtn" onclick="sendCommand()" aria-label="Send command">→</button>
+        </div>
+        <div class="command-guidance">
+          <span id="commandHint"></span>
+          <button type="button" onclick="showCommandHelp()">HELP</button>
         </div>
       </div>
     </div>
