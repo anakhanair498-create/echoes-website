@@ -16,6 +16,7 @@ const state = {
 };
 
 let scene, camera, renderer, clockSys;
+let activeChatCharacter = null;
 let player = { x: 0, y: 1.6, z: 10, yaw: 0, pitch: 0, onGround: true };
 let keys = {}, isLooking = false, lastMouse = { x: 0, y: 0 };
 let activePointerId = null, pointerStart = { x: 0, y: 0 }, pointerMoved = false;
